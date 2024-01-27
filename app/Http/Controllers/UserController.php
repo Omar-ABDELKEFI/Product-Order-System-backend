@@ -14,7 +14,10 @@ class UserController extends Controller
 {
     public function index()
     {
-        return UserResource::collection(User::with('role')->paginate());
+        $users = User::with('role.permissions')->paginate();
+
+    // Return the paginated collection as a JSON response using the UserResource
+            return UserResource::collection($users);
     }
 
     public function store(UserCreateRequest $request)

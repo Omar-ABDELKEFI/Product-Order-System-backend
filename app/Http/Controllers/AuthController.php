@@ -50,8 +50,11 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = $request->user();
-
-        return new UserResource($user->load('role'));
+    
+        // Load both the 'role' and 'permissions' relationships
+        $user->load(['role', 'role.permissions']);
+    
+        return new UserResource($user);
     }
 
     public function logout()
