@@ -71,7 +71,8 @@ class AuthController extends Controller
         $user = $request->user();
 
         $user->update($request->only('first_name', 'last_name', 'email'));
-
+        $user->load(['role', 'role.permissions']);
+    
         return \response(new UserResource($user), Response::HTTP_ACCEPTED);
     }
 
