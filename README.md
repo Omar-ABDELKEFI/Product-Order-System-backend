@@ -1,61 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+roduct Order System - Vue.js & Laravel Application
+Welcome to the Product Order System! This application features a Vue.js frontend and a Laravel backend, all containerized using Docker for easy setup and deployment.
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Table of Contents
+Prerequisites
+Installation
+Configuration
+Usage
+Contact Information
+Credits
+Prerequisites
+Docker installed
+Docker Compose installed
+Basic understanding of Vue.js, Laravel, and Docker
+Installation
+Clone the repository:
 
-## About Laravel
+bash
+Copy code
+git clone https://github.com/your-repo/product-order-system.git
+Navigate to the project directory:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+bash
+Copy code
+cd product-order-system
+Start the services using Docker Compose:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+bash
+Copy code
+docker-compose up --build
+Open your web browser and navigate to http://localhost:8080 for the Vue.js frontend and http://localhost:8000 for the Laravel backend (or adjust the ports as specified in docker-compose.yml).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Configuration
+Frontend Configuration
+For the Vue.js frontend, create a .env file in the frontend directory (if not already present) with your API base URL:
 
-## Learning Laravel
+env
+Copy code
+VUE_APP_API_BASE_URL=http://localhost:8000
+Backend Configuration
+For the Laravel backend, create a .env file in the backend directory with the following configuration:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+env
+Copy code
+APP_NAME=ProductOrderSystem
+APP_ENV=local
+APP_KEY=base64:YourAppKeyHere
+APP_DEBUG=true
+APP_URL=http://localhost
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+LOG_CHANNEL=stack
 
-## Laravel Sponsors
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=product_order_system
+DB_USERNAME=root
+DB_PASSWORD=root
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_COOKIE=session
 
-### Premium Partners
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=null
+MAIL_FROM_NAME="${APP_NAME}"
+Update the values as needed, especially the database credentials and mail configuration.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+Docker Configuration
+Dockerfile (Frontend):
+Create a Dockerfile in the frontend directory:
 
-## Contributing
+Dockerfile
+Copy code
+# Stage 1: Build the Vue.js application
+FROM node:16 AS build
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-## Code of Conduct
+# Stage 2: Serve the application
+FROM nginx:alpine
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+Dockerfile (Backend):
+Create a Dockerfile in the backend directory:
 
-## Security Vulnerabilities
+Dockerfile
+Copy code
+FROM php:8.1-fpm
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Install dependencies
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip git libonig-dev
 
-## License
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files
+COPY . .
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install Laravel dependencies
+RUN composer install
+
+
+Usage
+Once the services are running, you can:
+
+Browse Products: Navigate to the Vue.js frontend to view a list of available products.
+Product Details: Click on a product to view detailed information.
+Add to Cart: Add products to your shopping cart.
+Place Order: Proceed to checkout and place an order.
+Manage Cart: View and modify items in your shopping cart.
+Contact Information
+For any questions or issues, please contact:
+
+Email: your-email@example.com
+Credits
+This project was developed by Omar Abdelkefi.
